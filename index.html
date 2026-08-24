@@ -3,40 +3,280 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DREAM WORLD | Canal de Difusión</title>
+    <title>DREAM WORLD | Cyber Diffusion Core</title>
     <style>
+        :root {
+            --neon-green: #00ff66;
+            --neon-cyan: #00f3ff;
+            --neon-red: #ff0055;
+            --neon-purple: #bd00ff;
+            --bg-dark: #050811;
+            --card-bg: rgba(10, 16, 30, 0.85);
+            --border-color: rgba(0, 243, 255, 0.3);
+            --font-mono: 'Courier New', Courier, monospace;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background-color: #0d1117; color: #c9d1d9; font-family: monospace; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; }
-        header { border-bottom: 2px solid #238636; padding-bottom: 15px; margin-bottom: 20px; }
-        h1 { color: #58a6ff; font-size: 1.5rem; text-transform: uppercase; }
-        .status { color: #3fb950; font-size: 0.85rem; margin-top: 5px; }
-        .card { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 15px; margin-bottom: 15px; }
-        .card-title { color: #f0f6fc; font-size: 1.1rem; margin-bottom: 8px; }
-        .card-date { color: #8b949e; font-size: 0.75rem; margin-bottom: 10px; }
-        .card-body { font-size: 0.9rem; line-height: 1.4; color: #8b949e; }
-        .badge { background: #21262d; border: 1px solid #30363d; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; color: #58a6ff; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #a9b7c6;
+            font-family: var(--font-mono);
+            padding: 15px;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.05) 0%, transparent 80%),
+                linear-gradient(rgba(0, 255, 102, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 102, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 20px 20px, 20px 20px;
+        }
+
+        /* Scanline FX */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            z-index: 99;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .container { max-width: 800px; margin: 0 auto; position: relative; z-index: 10; }
+
+        header {
+            border: 1px solid var(--neon-cyan);
+            background: var(--card-bg);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2), inset 0 0 10px rgba(0, 243, 255, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            clip-path: polygon(0 0, 95% 0, 100% 20px, 100% 100%, 5% 100%, 0 85%);
+        }
+
+        .brand-title {
+            color: var(--neon-cyan);
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-shadow: 0 0 8px var(--neon-cyan);
+            letter-spacing: 3px;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.8rem;
+            color: var(--neon-green);
+            margin-top: 8px;
+            text-shadow: 0 0 5px var(--neon-green);
+        }
+
+        .blink-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--neon-green);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--neon-green);
+            animation: pulse 1s infinite alternate;
+        }
+
+        /* Hacker Control Panel */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .cyber-btn {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--neon-purple);
+            color: #fff;
+            padding: 12px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 5px rgba(189, 0, 255, 0.2);
+            text-align: center;
+        }
+
+        .cyber-btn:hover {
+            background: var(--neon-purple);
+            color: #000;
+            box-shadow: 0 0 15px var(--neon-purple);
+            font-weight: bold;
+        }
+
+        .cyber-btn.danger {
+            border-color: var(--neon-red);
+            box-shadow: 0 0 5px rgba(255, 0, 85, 0.2);
+        }
+
+        .cyber-btn.danger:hover {
+            background: var(--neon-red);
+            color: #fff;
+            box-shadow: 0 0 15px var(--neon-red);
+        }
+
+        /* Cards & Terminal Output */
+        .card {
+            background: var(--card-bg);
+            border-left: 3px solid var(--neon-cyan);
+            border-top: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 18px;
+            margin-bottom: 20px;
+            position: relative;
+            backdrop-filter: blur(5px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 1px dashed rgba(255,255,255,0.1);
+            padding-bottom: 8px;
+        }
+
+        .card-title {
+            color: #fff;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        .card-date {
+            color: var(--neon-cyan);
+            font-size: 0.75rem;
+        }
+
+        .card-body {
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: #00ffcc;
+            margin-bottom: 15px;
+        }
+
+        .terminal-box {
+            background: #000;
+            border: 1px solid var(--neon-green);
+            border-radius: 4px;
+            padding: 12px;
+            font-size: 0.75rem;
+            color: var(--neon-green);
+            max-height: 200px;
+            overflow-y: auto;
+            text-shadow: 0 0 4px var(--neon-green);
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin-bottom: 15px;
+        }
+
+        .badge-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: rgba(0, 243, 255, 0.1);
+            border: 1px solid var(--neon-cyan);
+            padding: 3px 8px;
+            font-size: 0.7rem;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+        }
+
+        .badge.secure {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+            background: rgba(0, 255, 102, 0.1);
+        }
+
+        @keyframes pulse {
+            from { opacity: 0.3; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1.2); }
+        }
     </style>
 </head>
 <body>
+
     <div class="container">
         <header>
-            <h1>DREAM WORLD</h1>
-            <div class="status">● SISTEMA DE DIFUSIÓN ACTIVO</div>
+            <div class="brand-title">DREAM WORLD // BROADCAST</div>
+            <div class="status-bar">
+                <div class="blink-dot"></div>
+                <span>NODE_STATUS: ONLINE</span> | 
+                <span>PORT: 8080</span> | 
+                <span>ENCRYPTION: AES-256</span>
+            </div>
         </header>
 
-        <main>
+        <!-- Control Console -->
+        <div class="controls-grid">
+            <button class="cyber-btn" onclick="executePayload()">[ Run Payload ]</button>
+            <button class="cyber-btn" onclick="injectMassiveData()">[ Mass Broadcast ]</button>
+            <button class="cyber-btn danger" onclick="purgeLogs()">[ Clear Logs ]</button>
+        </div>
+
+        <main id="feed">
             <div class="card">
-                <div class="card-title">COMUNICADO OFICIAL #001</div>
-                <div class="card-date">PUBLICADO: 2026-08-24</div>
-                <div class="card-body">
-                    Bienvenido a la plataforma de difusiones. Este sitio opera de forma estática para maximizar velocidad y seguridad.
+                <div class="card-header">
+                    <span class="card-title">&gt; COMUNICADO_OFICIAL_#001</span>
+                    <span class="card-date">STAMP: 2026-08-24</span>
                 </div>
-                <br>
-                <span class="badge">ESTADO: ONLINE</span>
+                <div class="card-body">
+                    Núcleo de difusión inicializado correctamente. Interfaz optimizada para despliegue táctico en entornos móviles y auditoría rápida.
+                </div>
+                
+                <!-- Terminal Output Container -->
+                <div class="terminal-box" id="termOutput">SYSTEM READY. WAITING FOR COMMAND...</div>
+
+                <div class="badge-group">
+                    <span class="badge secure">STATE: ENCRYPTED</span>
+                    <span class="badge">AUTH: ELISANDRO</span>
+                    <span class="badge">NET: READY</span>
+                </div>
             </div>
         </main>
     </div>
+
+    <script>
+        const terminal = document.getElementById('termOutput');
+
+        function appendLog(text) {
+            terminal.innerText += "\n" + text;
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function executePayload() {
+            terminal.innerText = "[*] INICIANDO INYECCIÓN DE DATOS...";
+            setTimeout(() => appendLog("[+] handshake_ack -> SUCCESS"), 300);
+            setTimeout(() => appendLog("[+] bypassing_filters -> OK"), 600);
+            setTimeout(() => appendLog("[!] PAYLOAD DESPLEGADO EN EL CANAL."), 900);
+        }
+
+        function injectMassiveData() {
+            terminal.innerText = "[*] GENERANDO SECUENCIA MASIVA DE DIFUSIÓN...";
+            let hex = "";
+            for(let i = 0; i < 300; i++) {
+                hex += Math.random().toString(16).substring(2, 8).toUpperCase() + " ";
+            }
+            setTimeout(() => appendLog("--- BEGIN BROADCAST DATA STREAM ---"), 200);
+            setTimeout(() => appendLog(hex), 500);
+            setTimeout(() => appendLog("--- END STREAM | TRANSMISIÓN COMPLETA ---"), 800);
+        }
+
+        function purgeLogs() {
+            terminal.innerText = "[!] LOGS PURGADOS. ESTADO LIMPIO.";
+        }
+    </script>
 </body>
 </html>
-
