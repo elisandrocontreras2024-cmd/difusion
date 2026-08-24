@@ -3,137 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DREAM WORLD | Cyber Diffusion Core</title>
+    <title>DREAM WORLD | Canal de Difusión</title>
+    <!-- Fuente moderna y limpia -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --neon-green: #00ff66;
             --neon-cyan: #00f3ff;
-            --neon-red: #ff0055;
-            --neon-purple: #bd00ff;
-            --bg-dark: #050811;
-            --card-bg: rgba(10, 16, 30, 0.85);
-            --border-color: rgba(0, 243, 255, 0.3);
-            --font-mono: 'Courier New', Courier, monospace;
+            --neon-pink: #ff007f;
+            --neon-purple: #9d00ff;
+            --neon-green: #00ff88;
+            --bg-dark: #070913;
+            --card-bg: rgba(18, 22, 41, 0.65);
+            --border-glow: rgba(0, 243, 255, 0.25);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             background-color: var(--bg-dark);
-            color: #a9b7c6;
-            font-family: var(--font-mono);
-            padding: 15px;
-            min-height: 100vh;
-            background-image: 
-                radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.05) 0%, transparent 80%),
-                linear-gradient(rgba(0, 255, 102, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 102, 0.03) 1px, transparent 1px);
-            background-size: 100% 100%, 20px 20px, 20px 20px;
-        }
-
-        /* Scanline FX */
-        body::before {
-            content: " ";
-            display: block;
-            position: fixed;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-            background-size: 100% 4px;
-            z-index: 99;
-            pointer-events: none;
-            opacity: 0.6;
-        }
-
-        .container { max-width: 800px; margin: 0 auto; position: relative; z-index: 10; }
-
-        header {
-            border: 1px solid var(--neon-cyan);
-            background: var(--card-bg);
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2), inset 0 0 10px rgba(0, 243, 255, 0.1);
+            color: #e2e8f0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             padding: 20px;
-            margin-bottom: 20px;
-            clip-path: polygon(0 0, 95% 0, 100% 20px, 100% 100%, 5% 100%, 0 85%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
         }
 
-        .brand-title {
-            color: var(--neon-cyan);
-            font-size: 1.8rem;
-            font-weight: bold;
-            text-shadow: 0 0 8px var(--neon-cyan);
-            letter-spacing: 3px;
+        /* Canvas para fondo de partículas en lluvia */
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
         }
 
-        .status-bar {
-            display: flex;
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Encabezado Neón */
+        header {
+            background: var(--card-bg);
+            border: 1px solid var(--border-glow);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37),
+                        inset 0 0 15px rgba(0, 243, 255, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--neon-cyan),
+                         0 0 20px var(--neon-cyan),
+                         0 0 40px var(--neon-purple);
+            margin-bottom: 8px;
+        }
+
+        .status {
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
-            font-size: 0.8rem;
+            gap: 8px;
             color: var(--neon-green);
-            margin-top: 8px;
-            text-shadow: 0 0 5px var(--neon-green);
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px var(--neon-green);
+            background: rgba(0, 255, 136, 0.1);
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
         }
 
-        .blink-dot {
+        .pulse-dot {
             width: 8px;
             height: 8px;
             background-color: var(--neon-green);
             border-radius: 50%;
-            box-shadow: 0 0 8px var(--neon-green);
-            animation: pulse 1s infinite alternate;
+            box-shadow: 0 0 10px var(--neon-green);
+            animation: pulse 1.5s infinite alternate;
         }
 
-        /* Hacker Control Panel */
-        .controls-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
+        /* Feed y Tarjetas de Difusión */
+        .feed {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
-        .cyber-btn {
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid var(--neon-purple);
-            color: #fff;
-            padding: 12px;
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.2s ease;
-            box-shadow: 0 0 5px rgba(189, 0, 255, 0.2);
-            text-align: center;
-        }
-
-        .cyber-btn:hover {
-            background: var(--neon-purple);
-            color: #000;
-            box-shadow: 0 0 15px var(--neon-purple);
-            font-weight: bold;
-        }
-
-        .cyber-btn.danger {
-            border-color: var(--neon-red);
-            box-shadow: 0 0 5px rgba(255, 0, 85, 0.2);
-        }
-
-        .cyber-btn.danger:hover {
-            background: var(--neon-red);
-            color: #fff;
-            box-shadow: 0 0 15px var(--neon-red);
-        }
-
-        /* Cards & Terminal Output */
         .card {
             background: var(--card-bg);
-            border-left: 3px solid var(--neon-cyan);
-            border-top: 1px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
-            border-bottom: 1px solid var(--border-color);
-            padding: 18px;
-            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            padding: 22px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
             position: relative;
-            backdrop-filter: blur(5px);
+            overflow: hidden;
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 3px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-purple));
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 0, 127, 0.4);
+            box-shadow: 0 12px 30px rgba(255, 0, 127, 0.15);
         }
 
         .card-header {
@@ -141,142 +134,164 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 12px;
-            border-bottom: 1px dashed rgba(255,255,255,0.1);
-            padding-bottom: 8px;
         }
 
         .card-title {
-            color: #fff;
-            font-size: 1rem;
-            letter-spacing: 1px;
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            color: #ffffff;
+            font-size: 1.15rem;
+            font-weight: 700;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
         }
 
         .card-date {
-            color: var(--neon-cyan);
-            font-size: 0.75rem;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            font-weight: 400;
         }
 
         .card-body {
-            font-size: 0.85rem;
-            line-height: 1.5;
-            color: #00ffcc;
-            margin-bottom: 15px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #cbd5e1;
+            margin-bottom: 16px;
         }
 
-        .terminal-box {
-            background: #000;
-            border: 1px solid var(--neon-green);
-            border-radius: 4px;
-            padding: 12px;
-            font-size: 0.75rem;
-            color: var(--neon-green);
-            max-height: 200px;
-            overflow-y: auto;
-            text-shadow: 0 0 4px var(--neon-green);
-            white-space: pre-wrap;
-            word-break: break-all;
-            margin-bottom: 15px;
-        }
-
-        .badge-group {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
+        /* Badges Neón */
         .badge {
+            display: inline-block;
             background: rgba(0, 243, 255, 0.1);
             border: 1px solid var(--neon-cyan);
-            padding: 3px 8px;
-            font-size: 0.7rem;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
             color: var(--neon-cyan);
-            text-transform: uppercase;
+            text-shadow: 0 0 5px var(--neon-cyan);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.15);
         }
 
-        .badge.secure {
-            border-color: var(--neon-green);
-            color: var(--neon-green);
-            background: rgba(0, 255, 102, 0.1);
+        .badge.pink {
+            background: rgba(255, 0, 127, 0.1);
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+            text-shadow: 0 0 5px var(--neon-pink);
+            box-shadow: 0 0 10px rgba(255, 0, 127, 0.15);
         }
 
         @keyframes pulse {
-            from { opacity: 0.3; transform: scale(0.8); }
+            from { opacity: 0.4; transform: scale(0.9); }
             to { opacity: 1; transform: scale(1.2); }
         }
     </style>
 </head>
 <body>
 
+    <!-- Lluvia de partículas neón -->
+    <canvas id="particleCanvas"></canvas>
+
     <div class="container">
         <header>
-            <div class="brand-title">DREAM WORLD // BROADCAST</div>
-            <div class="status-bar">
-                <div class="blink-dot"></div>
-                <span>NODE_STATUS: ONLINE</span> | 
-                <span>PORT: 8080</span> | 
-                <span>ENCRYPTION: AES-256</span>
+            <h1>DREAM WORLD</h1>
+            <div class="status">
+                <div class="pulse-dot"></div>
+                CANAL OFICIAL DE DIFUSIÓN
             </div>
         </header>
 
-        <!-- Control Console -->
-        <div class="controls-grid">
-            <button class="cyber-btn" onclick="executePayload()">[ Run Payload ]</button>
-            <button class="cyber-btn" onclick="injectMassiveData()">[ Mass Broadcast ]</button>
-            <button class="cyber-btn danger" onclick="purgeLogs()">[ Clear Logs ]</button>
-        </div>
-
-        <main id="feed">
+        <main class="feed">
+            <!-- Publicación #001 -->
             <div class="card">
                 <div class="card-header">
-                    <span class="card-title">&gt; COMUNICADO_OFICIAL_#001</span>
-                    <span class="card-date">STAMP: 2026-08-24</span>
+                    <span class="card-title">COMUNICADO OFICIAL #001</span>
+                    <span class="card-date">2026-08-24</span>
                 </div>
                 <div class="card-body">
-                    Núcleo de difusión inicializado correctamente. Interfaz optimizada para despliegue táctico en entornos móviles y auditoría rápida.
+                    Bienvenido a la plataforma de difusiones. Este sitio opera de forma estática para maximizar velocidad, seguridad y fluidez visual en tu dispositivo.
                 </div>
-                
-                <!-- Terminal Output Container -->
-                <div class="terminal-box" id="termOutput">SYSTEM READY. WAITING FOR COMMAND...</div>
+                <span class="badge">SISTEMA ACTIVO</span>
+            </div>
 
-                <div class="badge-group">
-                    <span class="badge secure">STATE: ENCRYPTED</span>
-                    <span class="badge">AUTH: ELISANDRO</span>
-                    <span class="badge">NET: READY</span>
+            <!-- Publicación #002 (Ejemplo adicional) -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">ACTUALIZACIÓN DE CONTENIDO</span>
+                    <span class="card-date">2026-08-24</span>
                 </div>
+                <div class="card-body">
+                    Nuevos diseños e interfaces han sido aplicados al canal. Todas las novedades se transmitirán directamente a través de esta vía.
+                </div>
+                <span class="badge pink">DREAM WORLD VIP</span>
             </div>
         </main>
     </div>
 
+    <!-- Script de Particle View (Lluvia Neón) -->
     <script>
-        const terminal = document.getElementById('termOutput');
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
 
-        function appendLog(text) {
-            terminal.innerText += "\n" + text;
-            terminal.scrollTop = terminal.scrollHeight;
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
 
-        function executePayload() {
-            terminal.innerText = "[*] INICIANDO INYECCIÓN DE DATOS...";
-            setTimeout(() => appendLog("[+] handshake_ack -> SUCCESS"), 300);
-            setTimeout(() => appendLog("[+] bypassing_filters -> OK"), 600);
-            setTimeout(() => appendLog("[!] PAYLOAD DESPLEGADO EN EL CANAL."), 900);
-        }
+        const colors = ['#00f3ff', '#ff007f', '#9d00ff', '#00ff88'];
+        const particles = [];
+        const particleCount = 60;
 
-        function injectMassiveData() {
-            terminal.innerText = "[*] GENERANDO SECUENCIA MASIVA DE DIFUSIÓN...";
-            let hex = "";
-            for(let i = 0; i < 300; i++) {
-                hex += Math.random().toString(16).substring(2, 8).toUpperCase() + " ";
+        class Particle {
+            constructor() {
+                this.reset();
             }
-            setTimeout(() => appendLog("--- BEGIN BROADCAST DATA STREAM ---"), 200);
-            setTimeout(() => appendLog(hex), 500);
-            setTimeout(() => appendLog("--- END STREAM | TRANSMISIÓN COMPLETA ---"), 800);
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * -canvas.height;
+                this.size = Math.random() * 3 + 1.5;
+                this.speedY = Math.random() * 1.5 + 0.8;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.alpha = Math.random() * 0.7 + 0.3;
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+
+                if (this.y > canvas.height) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
         }
 
-        function purgeLogs() {
-            terminal.innerText = "[!] LOGS PURGADOS. ESTADO LIMPIO.";
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
         }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+
+        animate();
     </script>
 </body>
 </html>
