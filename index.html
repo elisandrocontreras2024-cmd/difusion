@@ -1,20 +1,18 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DREAM WORLD | Canal de Difusión</title>
-    <!-- Fuente moderna y limpia -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <title>DREAM WORLD | Protocolo de Resguardo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --neon-cyan: #00f3ff;
-            --neon-pink: #ff007f;
-            --neon-purple: #9d00ff;
-            --neon-green: #00ff88;
-            --bg-dark: #070913;
-            --card-bg: rgba(18, 22, 41, 0.65);
-            --border-glow: rgba(0, 243, 255, 0.25);
+            --neon-red: #ff0055;
+            --neon-amber: #ffaa00;
+            --bg-dark: #07070c;
+            --card-bg: rgba(20, 10, 15, 0.75);
+            --border-glow: rgba(255, 0, 85, 0.3);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,7 +27,6 @@
             position: relative;
         }
 
-        /* Canvas para fondo de partículas en lluvia */
         #particleCanvas {
             position: fixed;
             top: 0;
@@ -47,7 +44,6 @@
             z-index: 10;
         }
 
-        /* Encabezado Neón */
         header {
             background: var(--card-bg);
             border: 1px solid var(--border-glow);
@@ -56,19 +52,18 @@
             margin-bottom: 25px;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37),
-                        inset 0 0 15px rgba(0, 243, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5),
+                        inset 0 0 15px rgba(255, 0, 85, 0.15);
             text-align: center;
         }
 
         h1 {
             color: #fff;
-            font-size: 2.2rem;
+            font-size: 2rem;
             font-weight: 800;
             letter-spacing: 2px;
-            text-shadow: 0 0 10px var(--neon-cyan),
-                         0 0 20px var(--neon-cyan),
-                         0 0 40px var(--neon-purple);
+            text-shadow: 0 0 10px var(--neon-red),
+                         0 0 20px var(--neon-red);
             margin-bottom: 8px;
         }
 
@@ -76,156 +71,103 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            color: var(--neon-green);
+            color: var(--neon-amber);
             font-size: 0.85rem;
             font-weight: 600;
             letter-spacing: 1px;
-            text-shadow: 0 0 8px var(--neon-green);
-            background: rgba(0, 255, 136, 0.1);
+            text-shadow: 0 0 8px var(--neon-amber);
+            background: rgba(255, 170, 0, 0.1);
             padding: 6px 14px;
             border-radius: 20px;
-            border: 1px solid rgba(0, 255, 136, 0.3);
+            border: 1px solid rgba(255, 170, 0, 0.3);
         }
 
         .pulse-dot {
             width: 8px;
             height: 8px;
-            background-color: var(--neon-green);
+            background-color: var(--neon-amber);
             border-radius: 50%;
-            box-shadow: 0 0 10px var(--neon-green);
-            animation: pulse 1.5s infinite alternate;
-        }
-
-        /* Feed y Tarjetas de Difusión */
-        .feed {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+            box-shadow: 0 0 10px var(--neon-amber);
+            animation: pulse 1s infinite alternate;
         }
 
         .card {
             background: var(--card-bg);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 0, 85, 0.2);
             border-radius: 18px;
-            padding: 22px;
+            padding: 25px;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
             position: relative;
             overflow: hidden;
-            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
         .card::before {
             content: '';
             position: absolute;
             top: 0; left: 0; width: 100%; height: 3px;
-            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-purple));
-        }
-
-        .card:hover {
-            transform: translateY(-3px);
-            border-color: rgba(255, 0, 127, 0.4);
-            box-shadow: 0 12px 30px rgba(255, 0, 127, 0.15);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
+            background: linear-gradient(90deg, var(--neon-red), var(--neon-amber));
         }
 
         .card-title {
             color: #ffffff;
-            font-size: 1.15rem;
+            font-size: 1.2rem;
             font-weight: 700;
+            margin-bottom: 12px;
             text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
-        }
-
-        .card-date {
-            color: #94a3b8;
-            font-size: 0.8rem;
-            font-weight: 400;
         }
 
         .card-body {
             font-size: 0.95rem;
             line-height: 1.6;
             color: #cbd5e1;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
-        /* Badges Neón */
         .badge {
             display: inline-block;
-            background: rgba(0, 243, 255, 0.1);
-            border: 1px solid var(--neon-cyan);
-            padding: 4px 12px;
+            background: rgba(255, 0, 85, 0.15);
+            border: 1px solid var(--neon-red);
+            padding: 6px 14px;
             border-radius: 12px;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             font-weight: 600;
-            color: var(--neon-cyan);
-            text-shadow: 0 0 5px var(--neon-cyan);
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.15);
-        }
-
-        .badge.pink {
-            background: rgba(255, 0, 127, 0.1);
-            border-color: var(--neon-pink);
-            color: var(--neon-pink);
-            text-shadow: 0 0 5px var(--neon-pink);
-            box-shadow: 0 0 10px rgba(255, 0, 127, 0.15);
+            color: var(--neon-red);
+            text-shadow: 0 0 5px var(--neon-red);
+            box-shadow: 0 0 10px rgba(255, 0, 85, 0.2);
         }
 
         @keyframes pulse {
-            from { opacity: 0.4; transform: scale(0.9); }
+            from { opacity: 0.3; transform: scale(0.9); }
             to { opacity: 1; transform: scale(1.2); }
         }
     </style>
 </head>
 <body>
 
-    <!-- Lluvia de partículas neón -->
     <canvas id="particleCanvas"></canvas>
 
     <div class="container">
         <header>
-            <h1>DREAM WORLD</h1>
+            <h1>PROTOCOLO DE RESGUARDOS</h1>
             <div class="status">
                 <div class="pulse-dot"></div>
-                CANAL OFICIAL DE DIFUSIÓN
+                SISTEMA AUTOMATIZADO ACTIVO
             </div>
         </header>
 
-        <main class="feed">
-            <!-- Publicación #001 -->
+        <main>
             <div class="card">
-                <div class="card-header">
-                    <span class="card-title">COMUNICADO OFICIAL #001</span>
-                    <span class="card-date">2026-08-24</span>
-                </div>
+                <div class="card-title">AVISO DE SEGURIDAD GENERAL</div>
                 <div class="card-body">
-                    Bienvenido a la plataforma de difusiones. Este sitio opera de forma estática para maximizar velocidad, seguridad y fluidez visual en tu dispositivo.
+                    Esta plataforma se encuentra enlazada a un protocolo de verificación de estado. En caso de interrupción del canal o pérdida de confirmación de acceso, el sistema ejecutará automáticamente la divulgación de paquetes de datos cifrados almacenados en múltiples servidores externos.
                 </div>
-                <span class="badge">SISTEMA ACTIVO</span>
-            </div>
-
-            <!-- Publicación #002 (Ejemplo adicional) -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">ACTUALIZACIÓN DE CONTENIDO</span>
-                    <span class="card-date">2026-08-24</span>
-                </div>
-                <div class="card-body">
-                    Nuevos diseños e interfaces han sido aplicados al canal. Todas las novedades se transmitirán directamente a través de esta vía.
-                </div>
-                <span class="badge pink">DREAM WORLD VIP</span>
+                <span class="badge">DEAD MAN'S SWITCH: MONITORIZANDO</span>
             </div>
         </main>
     </div>
 
-    <!-- Script de Particle View (Lluvia Neón) -->
     <script>
         const canvas = document.getElementById('particleCanvas');
         const ctx = canvas.getContext('2d');
@@ -237,60 +179,44 @@
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
-        const colors = ['#00f3ff', '#ff007f', '#9d00ff', '#00ff88'];
+        const colors = ['#ff0055', '#ffaa00', '#770022'];
         const particles = [];
-        const particleCount = 60;
+        const particleCount = 50;
 
         class Particle {
-            constructor() {
-                this.reset();
-            }
-
+            constructor() { this.reset(); }
             reset() {
                 this.x = Math.random() * canvas.width;
                 this.y = Math.random() * -canvas.height;
-                this.size = Math.random() * 3 + 1.5;
-                this.speedY = Math.random() * 1.5 + 0.8;
-                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2.5 + 1;
+                this.speedY = Math.random() * 1.8 + 0.8;
                 this.color = colors[Math.floor(Math.random() * colors.length)];
                 this.alpha = Math.random() * 0.7 + 0.3;
             }
-
             update() {
                 this.y += this.speedY;
-                this.x += this.speedX;
-
-                if (this.y > canvas.height) {
-                    this.reset();
-                }
+                if (this.y > canvas.height) this.reset();
             }
-
             draw() {
                 ctx.save();
                 ctx.globalAlpha = this.alpha;
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
-                ctx.shadowBlur = 12;
+                ctx.shadowBlur = 10;
                 ctx.shadowColor = this.color;
                 ctx.fill();
                 ctx.restore();
             }
         }
 
-        for (let i = 0; i < particleCount; i++) {
-            particles.push(new Particle());
-        }
+        for (let i = 0; i < particleCount; i++) particles.push(new Particle());
 
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
+            particles.forEach(p => { p.update(); p.draw(); });
             requestAnimationFrame(animate);
         }
-
         animate();
     </script>
 </body>
