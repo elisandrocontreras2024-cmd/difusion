@@ -1,47 +1,273 @@
-
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DREAM WORLD | Protocolo de Resguardo</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --neon-red: #ff0055;
             --neon-amber: #ffaa00;
-            --bg-dark: #07070c;
-            --card-bg: rgba(20, 10, 15, 0.75);
-            --border-glow: rgba(255, 0, 85, 0.3);
+            --neon-green: #00ff66;
+            --neon-cyan: #00f0ff;
+            --bg-dark: #030306;
+            --card-bg: rgba(12, 6, 10, 0.85);
+            --border-glow: rgba(255, 0, 85, 0.4);
+            --font-mono: 'Fira Code', monospace;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            -webkit-tap-highlight-color: transparent;
+        }
 
         body {
             background-color: var(--bg-dark);
             color: #e2e8f0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            padding: 20px;
+            font-family: var(--font-sans);
+            padding: 0;
+            margin: 0;
             min-height: 100vh;
             overflow-x: hidden;
             position: relative;
         }
 
-        #particleCanvas {
+        /* --- Scanlines CRT & Ambient Grid Overlay --- */
+        .scanline-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%),
+                radial-gradient(circle at center, transparent 60%, rgba(0,0,0,0.85) 100%);
+            background-size: 100% 4px, 100% 100%;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        #bgCanvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
             z-index: 0;
             pointer-events: none;
         }
 
+        /* --- INTRO / BOOT SCREEN (KALI / MR. ROBOT STYLE) --- */
+        #hackerIntro {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background-color: #020204;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px 20px;
+            font-family: var(--font-mono);
+            transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), filter 0.7s ease;
+            overflow: hidden;
+        }
+
+        #hackerIntro.fade-out {
+            opacity: 0;
+            transform: scale(1.1);
+            filter: blur(14px) brightness(2);
+            pointer-events: none;
+        }
+
+        /* HUD Corners Sci-Fi */
+        .hud-corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--neon-cyan);
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        .hud-top-left { top: 12px; left: 12px; border-right: none; border-bottom: none; }
+        .hud-top-right { top: 12px; right: 12px; border-left: none; border-bottom: none; }
+        .hud-bottom-left { bottom: 12px; left: 12px; border-right: none; border-top: none; }
+        .hud-bottom-right { bottom: 12px; right: 12px; border-left: none; border-top: none; }
+        
+        .intro-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed rgba(0, 240, 255, 0.3);
+            padding-bottom: 10px;
+            font-size: 0.72rem;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .terminal-container {
+            flex-grow: 1;
+            margin: 15px 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        .terminal-window {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.82rem;
+            line-height: 1.45;
+            color: #a7f3d0;
+            text-shadow: 0 0 6px rgba(0, 255, 102, 0.3);
+            scrollbar-width: none;
+        }
+        .terminal-window::-webkit-scrollbar { display: none; }
+
+        .log-line {
+            display: flex;
+            gap: 8px;
+            word-break: break-all;
+        }
+
+        .log-prompt { color: var(--neon-green); font-weight: 700; }
+        .log-cmd { color: #ffffff; font-weight: 700; }
+        .log-prefix { color: var(--neon-amber); font-weight: 700; }
+        .log-text { color: #cbd5e1; }
+        .log-warn { color: var(--neon-red); font-weight: 700; text-shadow: 0 0 8px var(--neon-red); }
+        .log-success { color: var(--neon-green); font-weight: 700; }
+        .log-hex { color: rgba(0, 240, 255, 0.7); font-size: 0.75rem; font-family: var(--font-mono); }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background: var(--neon-green);
+            box-shadow: 0 0 8px var(--neon-green);
+            animation: blink 0.7s infinite;
+            vertical-align: middle;
+            margin-left: 4px;
+        }
+
+        /* Hex Dump Decoder Monitor */
+        .hex-stream {
+            background: rgba(0, 240, 255, 0.03);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 0.7rem;
+            color: var(--neon-cyan);
+            height: 48px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            font-family: var(--font-mono);
+            white-space: nowrap;
+        }
+
+        .intro-footer {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            align-items: center;
+        }
+
+        /* Glitch Text Effect (Mr. Robot Style) */
+        .glitch-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .glitch-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            position: relative;
+            text-align: center;
+            text-shadow: 0 0 10px var(--neon-red);
+        }
+
+        .glitch-title::before,
+        .glitch-title::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.8;
+        }
+
+        .glitch-title::before {
+            color: var(--neon-cyan);
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+            clip-path: inset(0 0 60% 0);
+        }
+
+        .glitch-title::after {
+            color: var(--neon-red);
+            animation: glitch-anim-2 2s infinite linear alternate-reverse;
+            clip-path: inset(40% 0 0 0);
+        }
+
+        .btn-enter {
+            background: rgba(255, 0, 85, 0.15);
+            border: 1px solid var(--neon-red);
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 15px 30px;
+            border-radius: 6px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.3);
+            transition: all 0.25s ease;
+            width: 100%;
+            max-width: 340px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            opacity: 0;
+            transform: translateY(15px);
+            pointer-events: none;
+        }
+        
+        .btn-enter.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+            animation: pulse-border 1.5s infinite alternate;
+        }
+
+        .btn-enter:active {
+            background: var(--neon-red);
+            color: #000;
+            box-shadow: 0 0 30px var(--neon-red);
+        }
+
+        /* --- DASHBOARD PRINCIPAL --- */
         .container {
             max-width: 650px;
             margin: 0 auto;
+            padding: 25px 20px 40px 20px;
             position: relative;
             z-index: 10;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s, transform 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
+        }
+
+        .container.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         header {
@@ -50,36 +276,37 @@
             border-radius: 20px;
             padding: 25px;
             margin-bottom: 25px;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5),
-                        inset 0 0 15px rgba(255, 0, 85, 0.15);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.7),
+                        inset 0 0 20px rgba(255, 0, 85, 0.15);
             text-align: center;
         }
 
         h1 {
             color: #fff;
-            font-size: 2rem;
+            font-size: 1.75rem;
             font-weight: 800;
             letter-spacing: 2px;
-            text-shadow: 0 0 10px var(--neon-red),
-                         0 0 20px var(--neon-red);
-            margin-bottom: 8px;
+            text-shadow: 0 0 12px var(--neon-red), 0 0 24px var(--neon-red);
+            margin-bottom: 12px;
         }
 
         .status {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
             color: var(--neon-amber);
-            font-size: 0.85rem;
+            font-size: 0.78rem;
             font-weight: 600;
             letter-spacing: 1px;
             text-shadow: 0 0 8px var(--neon-amber);
-            background: rgba(255, 170, 0, 0.1);
+            background: rgba(255, 170, 0, 0.08);
             padding: 6px 14px;
             border-radius: 20px;
-            border: 1px solid rgba(255, 170, 0, 0.3);
+            border: 1px solid rgba(255, 170, 0, 0.35);
+            font-family: var(--font-mono);
         }
 
         .pulse-dot {
@@ -93,11 +320,11 @@
 
         .card {
             background: var(--card-bg);
-            border: 1px solid rgba(255, 0, 85, 0.2);
+            border: 1px solid rgba(255, 0, 85, 0.25);
             border-radius: 18px;
             padding: 25px;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
             position: relative;
             overflow: hidden;
@@ -107,98 +334,208 @@
             content: '';
             position: absolute;
             top: 0; left: 0; width: 100%; height: 3px;
-            background: linear-gradient(90deg, var(--neon-red), var(--neon-amber));
+            background: linear-gradient(90deg, var(--neon-red), var(--neon-amber), var(--neon-cyan));
         }
 
         .card-title {
             color: #ffffff;
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             font-weight: 700;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
+            letter-spacing: 1px;
             text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+                                   }
+        
+        .card-title::before {
+            content: '//';
+            color: var(--neon-red);
+            font-family: var(--font-mono);
         }
 
         .card-body {
-            font-size: 0.95rem;
-            line-height: 1.6;
+            font-size: 0.92rem;
+            line-height: 1.7;
             color: #cbd5e1;
-            margin-bottom: 20px;
+        }
+
+        .card-body p {
+            margin-bottom: 14px;
+        }
+
+        .card-body p:last-child {
+            margin-bottom: 0;
+        }
+
+        .badge-container {
+            margin-top: 22px;
+            display: flex;
+            justify-content: flex-start;
         }
 
         .badge {
-            display: inline-block;
-            background: rgba(255, 0, 85, 0.15);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 0, 85, 0.12);
             border: 1px solid var(--neon-red);
-            padding: 6px 14px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
             color: var(--neon-red);
             text-shadow: 0 0 5px var(--neon-red);
-            box-shadow: 0 0 10px rgba(255, 0, 85, 0.2);
+            box-shadow: 0 0 12px rgba(255, 0, 85, 0.2);
+            font-family: var(--font-mono);
         }
 
+        /* --- KEYFRAMES --- */
         @keyframes pulse {
-            from { opacity: 0.3; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1.2); }
+            from { opacity: 0.3; transform: scale(0.85); }
+            to { opacity: 1; transform: scale(1.15); }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        @keyframes pulse-border {
+            from { box-shadow: 0 0 10px rgba(255, 0, 85, 0.3); border-color: rgba(255, 0, 85, 0.5); }
+            to { box-shadow: 0 0 25px rgba(255, 0, 85, 0.9); border-color: rgba(255, 0, 85, 1); }
+        }
+
+        @keyframes glitch-anim-1 {
+            0% { clip-path: inset(20% 0 50% 0); transform: translate(-2px, 1px); }
+            20% { clip-path: inset(60% 0 10% 0); transform: translate(2px, -1px); }
+            40% { clip-path: inset(40% 0 30% 0); transform: translate(-1px, 2px); }
+            60% { clip-path: inset(80% 0 5% 0); transform: translate(1px, -2px); }
+            80% { clip-path: inset(10% 0 70% 0); transform: translate(-2px, 0); }
+            100% { clip-path: inset(30% 0 20% 0); transform: translate(2px, 1px); }
+        }
+
+        @keyframes glitch-anim-2 {
+            0% { clip-path: inset(50% 0 20% 0); transform: translate(2px, -1px); }
+            20% { clip-path: inset(10% 0 60% 0); transform: translate(-2px, 1px); }
+            40% { clip-path: inset(30% 0 40% 0); transform: translate(1px, -2px); }
+            60% { clip-path: inset(5% 0 80% 0); transform: translate(-1px, 2px); }
+            80% { clip-path: inset(70% 0 10% 0); transform: translate(2px, 0); }
+            100% { clip-path: inset(20% 0 30% 0); transform: translate(-2px, -1px); }
         }
     </style>
 </head>
 <body>
 
-    <canvas id="particleCanvas"></canvas>
+    <div class="scanline-overlay"></div>
+    <canvas id="bgCanvas" aria-hidden="true"></canvas>
 
-    <div class="container">
+    <!-- INTRO PANTALLA HACKER (KALI LINUX / MR. ROBOT STYLE) -->
+    <div id="hackerIntro" role="dialog" aria-modal="true" aria-label="Secuencia de Arranque del Sistema">
+        <div class="hud-corner hud-top-left"></div>
+        <div class="hud-corner hud-top-right"></div>
+        <div class="hud-corner hud-bottom-left"></div>
+        <div class="hud-corner hud-bottom-right"></div>
+
+        <div class="intro-header">
+            <span>[ DREAM_WORLD // SYSTEM OS 5.1.0 ]</span>
+            <span>NODES: ONLINE</span>
+        </div>
+
+        <div class="terminal-container">
+            <div class="terminal-window" id="terminalOutput">
+                <!-- Comandos de terminal inyectados con JavaScript -->
+            </div>
+            
+            <div class="hex-stream" id="hexStreamDisplay">
+                0x7FFF5FBFF000: 44 52 45 41 4D 5F 57 4F 52 4C 44 00 2D 41 45 53 32 35 36
+            </div>
+        </div>
+
+        <div class="intro-footer">
+            <div class="glitch-wrapper">
+                <div class="glitch-title" id="scrambleTitle" data-text="DW-PROTOCOL">DW-PROTOCOL</div>
+            </div>
+            <button class="btn-enter" id="btnEnter" onclick="unlockSystem()">
+                <span>ACCEDER AL PROTOCOLO</span>
+                <span style="font-size: 1.1rem;">&#8680;</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL DEL DASHBOARD -->
+    <div class="container" id="mainContainer">
         <header>
-            <h1>PROTOCOLO DE RESGUARDOS</h1>
+            <h1 id="mainTitle">PROTOCOLO DE RESGUARDOS</h1>
             <div class="status">
-                <div class="pulse-dot"></div>
-                SISTEMA AUTOMATIZADO ACTIVO
-                       DREAM WORLD
+                <span class="pulse-dot"></span>
+                <span>SISTEMA AUTOMATIZADO ACTIVO &bull; DREAM WORLD</span>
             </div>
         </header>
 
         <main>
-            <div class="card">
-                <div class="card-title">AVISO DE SEGURIDAD GENERAL</div>
+            <article class="card">
+                <h2 class="card-title">AVISO DE SEGURIDAD GENERAL</h2>
                 <div class="card-body">
-                 Mi presencia física y digital está vinculada de manera ininterrumpida a un protocolo autónomo de verificación de estado. Si me llegara a pasar algo, si llego a desaparecer o si se confirma mi inactividad prolongada sin autenticación, el sistema interpretará la falta de confirmación de vida/estado como un evento crítico de vulneración.
-De forma inmediata, autónoma e irreversible, se desencadenará la liberación masiva y escalonada de paquetes de datos cifrados bajo algoritmos AES-256-GCM, alojados en infraestructura externa redundante y nodos descentralizados. Esta divulgación pública abarcará el filtrado completo de registros de conversaciones privadas, archivos fuente de proyectos clasificados, datos de arquitectura no documentados, repositorios de investigación, claves de acceso y volúmenes masivos de secretos acumulados en almacenamiento frío.
-De manera paralela, la secuencia de contingencia ejecutará scripts de interrupción de sesión y revocación masiva de tokens de autenticación en plataformas vinculadas (incluyendo infraestructuras cloud y redes como WhatsApp, Facebook y servicios asociados). Al colapsar los canales de verificación, se forzará la invalidación de claves criptográficas, provocando el congelamiento inmediato de las cuentas y la detención total de sus funciones operativas.
-El protocolo es 100% autoejecutable y descentralizado: una vez desencadenado por mi ausencia, no existe método de cancelación, override ni botón de parada humana.
-                <span class="badge">DEAD MAN'S SWITCH: MONITORIZANDO</span>
-            </div>
+                    <p>
+                        Mi presencia física y digital está vinculada de manera ininterrumpida a un protocolo autónomo de verificación de estado. Si me llegara a pasar algo, si llego a desaparecer o si se confirma mi inactividad prolongada sin autenticación, el sistema interpretará la falta de confirmación de vida/estado como un evento crítico de vulneración.
+   </p>
+                    <p>
+                        De forma inmediata, autónoma e irreversible, se desencadenará la liberación masiva y escalonada de paquetes de datos cifrados bajo algoritmos AES-256-GCM, alojados en infraestructura externa redundante y nodos descentralizados. Esta divulgación pública abarcará el filtrado completo de registros de conversaciones privadas, archivos fuente de proyectos clasificados, datos de arquitectura no documentados, repositorios de investigación, claves de acceso y volúmenes masivos de secretos acumulados en almacenamiento frío.
+                    </p>
+                    <p>
+                        De manera paralela, la secuencia de contingencia ejecutará scripts de interrupción de sesión y revocación masiva de tokens de autenticación en plataformas vinculadas (incluyendo infraestructuras cloud y redes como WhatsApp, Facebook y servicios asociados). Al colapsar los canales de verificación, se forzará la invalidación de claves criptográficas, provocando el congelamiento inmediato de las cuentas y la detención total de sus funciones operativas.
+                    </p>
+                    <p>
+                        El protocolo es 100% autoejecutable y descentralizado: una vez desencadenado por mi ausencia, no existe método de cancelación, override ni botón de parada humana.
+                    </p>
+                </div>
+                <div class="badge-container">
+                    <div class="badge">
+                        <span>&#9888;</span>
+                        <span>DEAD MAN'S SWITCH: MONITORIZANDO</span>
+                    </div>
+                </div>
+            </article>
         </main>
     </div>
 
     <script>
-        const canvas = document.getElementById('particleCanvas');
+        // --- HIGH DPI (4K) MATRIX NET & PARTICLE CANVAS ---
+        const canvas = document.getElementById('bgCanvas');
         const ctx = canvas.getContext('2d');
+        let dpr = window.devicePixelRatio || 1;
 
         function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            dpr = window.devicePixelRatio || 1;
+            canvas.width = window.innerWidth * dpr;
+            canvas.height = window.innerHeight * dpr;
+            ctx.scale(dpr, dpr);
         }
+        
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
-        const colors = ['#ff0055', '#ffaa00', '#770022'];
+        const colors = ['#ff0055', '#ffaa00', '#00ff66', '#00f0ff'];
         const particles = [];
         const particleCount = 50;
 
         class Particle {
-            constructor() { this.reset(); }
+            constructor() { 
+                this.reset(); 
+            }
             reset() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * -canvas.height;
-                this.size = Math.random() * 2.5 + 1;
-                this.speedY = Math.random() * 1.8 + 0.8;
+                this.x = Math.random() * window.innerWidth;
+                this.y = Math.random() * -window.innerHeight;
+                this.size = Math.random() * 2 + 1;
+                this.speedY = Math.random() * 1.6 + 0.6;
                 this.color = colors[Math.floor(Math.random() * colors.length)];
                 this.alpha = Math.random() * 0.7 + 0.3;
             }
             update() {
                 this.y += this.speedY;
-                if (this.y > canvas.height) this.reset();
+                if (this.y > window.innerHeight) this.reset();
             }
             draw() {
                 ctx.save();
@@ -206,21 +543,157 @@ El protocolo es 100% autoejecutable y descentralizado: una vez desencadenado por
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = this.color;
                 ctx.fill();
                 ctx.restore();
             }
         }
 
-        for (let i = 0; i < particleCount; i++) particles.push(new Particle());
-
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => { p.update(); p.draw(); });
-            requestAnimationFrame(animate);
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
         }
-        animate();
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+            }
+            requestAnimationFrame(animateCanvas);
+        }
+        
+        animateCanvas();
+
+        // --- HEX STREAM ANIMATION ---
+        const hexDisplay = document.getElementById('hexStreamDisplay');
+        const hexChars = '0123456789ABCDEF';
+        
+        setInterval(() => {
+            let address = '0x' + Array.from({length: 8}, () => hexChars[Math.floor(Math.random() * 16)]).join('');
+            let bytes = Array.from({length: 12}, () => hexChars[Math.floor(Math.random() * 16)] + hexChars[Math.floor(Math.random() * 16)]).join(' ');
+            hexDisplay.innerText = `${address}: ${bytes} [AES-GCM]`;
+        }, 90);
+
+        // --- BOOT TERMINAL SEQUENCER (KALI LINUX STYLE) ---
+        const terminalOutput = document.getElementById('terminalOutput');
+        const btnEnter = document.getElementById('btnEnter');
+        const scrambleTitle = document.getElementById('scrambleTitle');
+
+        const scriptSteps = [
+            { cmd: "root@dreamworld:~# ./init_resguardo_protocol.sh --force-decrypt" },
+            { type: 'prefix', tag: '[INIT]', text: 'Iniciando subsistema Kernel Linux 6.8.0-DW (x86_64)...' },
+            { type: 'normal', tag: '[NET]', text: 'Enrutando tráfico vía interfaz cifrada Tor/I2P mesh...' },
+            { type: 'normal', tag: '[CRYPTO]', text: 'Verificando firmas de paquetes AES-256-GCM... [OK]' },
+            { type: 'warn', tag: '[SEC_WARN]', text: 'Monitor de verificación de estado: SIN ANOMALÍAS DETECTADAS.' },
+            { type: 'warn', tag: '[DEAD_MAN]', text: 'Dead Man\'s Switch: Conexión con nodo primario activa.' },
+            { type: 'success', tag: '[SUCCESS]', text: 'Entorno de resguardo autenticado. Desbloqueo de interfaz listo.' }
+        ];
+
+        const scrambleChars = '01#$X_@!?%&~<>*[]{}';
+
+        function scrambleEffect(element, targetText, duration = 1200) {
+            let start = Date.now();
+            let timer = setInterval(() => {
+                let timePassed = Date.now() - start;
+                let progress = timePassed / duration;
+
+                if (progress >= 1) {
+                    element.innerText = targetText;
+                    element.setAttribute('data-text', targetText);
+                    clearInterval(timer);
+                } else {
+                    let scrambled = targetText.split('').map((char, index) => {
+                        if (char === ' ') return ' ';
+                        if (index / targetText.length < progress) return char;
+                        return scrambleChars[Math.floor(Math.random() * scrambleChars.length)];
+                    }).join('');
+                    element.innerText = scrambled;
+                    element.setAttribute('data-text', scrambled);
+                }
+            }, 35);
+        }
+
+        let stepIndex = 0;
+
+        function typeCommand(cmdText, callback) {
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'log-line';
+            lineDiv.innerHTML = `<span class="log-prompt">root@dreamworld:~#</span> <span class="log-cmd"></span><span class="cursor"></span>`;
+            terminalOutput.appendChild(lineDiv);
+            
+            const cmdSpan = lineDiv.querySelector('.log-cmd');
+            const cursor = lineDiv.querySelector('.cursor');
+            let charIdx = 0;
+
+            let typing = setInterval(() => {
+                if (charIdx < cmdText.length) {
+                    cmdSpan.textContent += cmdText.charAt(charIdx);
+                    charIdx++;
+                    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+                } else {
+                    clearInterval(typing);
+                    cursor.remove();
+                    setTimeout(callback, 200);
+                }
+            }, 35);
+        }
+
+        function printNextStep() {
+            if (stepIndex < scriptSteps.length) {
+                const step = scriptSteps[stepIndex];
+
+                if (step.cmd) {
+                    typeCommand("./init_resguardo_protocol.sh --force-decrypt", () => {
+                        stepIndex++;
+                        printNextStep();
+                    });
+                } else {
+                    const lineDiv = document.createElement('div');
+                    lineDiv.className = 'log-line';
+
+                    let classType = 'log-text';
+                    if (step.type === 'warn') classType = 'log-warn';
+                    if (step.type === 'success') classType = 'log-success';
+
+                    lineDiv.innerHTML = `<span class="log-prefix">${step.tag}</span> <span class="${classType}">${step.text}</span>`;
+                    terminalOutput.appendChild(lineDiv);
+                    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+                    
+                    stepIndex++;
+                    setTimeout(printNextStep, Math.random() * 200 + 120);
+                }
+            } else {
+                // Finalizar secuencia con cursor activo y botón de entrada
+                const cursorSpan = document.createElement('span');
+                cursorSpan.className = 'cursor';
+                terminalOutput.appendChild(cursorSpan);
+
+                scrambleEffect(scrambleTitle, 'DREAM WORLD PROTOCOL', 1400);
+                setTimeout(() => {
+                    btnEnter.classList.add('visible');
+                }, 500);
+            }
+        }
+
+        // Iniciar secuencia cuando la página esté cargada
+        window.addEventListener('load', () => {
+            setTimeout(printNextStep, 350);
+        });
+
+        // --- TRANSICIÓN DE DESBLOQUEO DEL SISTEMA ---
+        function unlockSystem() {
+            const intro = document.getElementById('hackerIntro');
+            const container = document.getElementById('mainContainer');
+
+            intro.classList.add('fade-out');
+            
+            setTimeout(() => {
+                intro.style.display = 'none';
+                container.classList.add('visible');
+                
+                const mainTitle = document.getElementById('mainTitle');
+                scrambleEffect(mainTitle, 'PROTOCOLO DE RESGUARDOS', 1000);
+            }, 700);
+        }
     </script>
 </body>
 </html>
